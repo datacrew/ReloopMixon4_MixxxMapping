@@ -805,44 +805,85 @@
             </control>
             <control>
                 <group>[Channel1]</group>
-                <key>reloop_toggle</key>
+                <key>ReloopMixon4.SetBeatLoop</key>
                 <description>loopEncoder</description>
                 <status>0xB4</status>
                 <midino>0x08</midino>
                 <options>
-                    <Normal />
+                    <Script-binding />
                 </options>
             </control>
             <control>
                 <group>[Channel2]</group>
-                <key>reloop_toggle</key>
+                <key>ReloopMixon4.SetBeatLoop</key>
                 <description>loopEncoder</description>
                 <status>0xB5</status>
                 <midino>0x08</midino>
                 <options>
-                    <Normal />
+                    <Script-binding />
                 </options>
             </control>
             <control>
                 <group>[Channel3]</group>
-                <key>reloop_toggle</key>
+                <key>ReloopMixon4.SetBeatLoop</key>
                 <description>loopEncoder</description>
                 <status>0xB6</status>
                 <midino>0x08</midino>
                 <options>
-                    <Normal />
+                    <Script-binding />
                 </options>
             </control>
             <control>
                 <group>[Channel4]</group>
-                <key>reloop_toggle</key>
+                <key>ReloopMixon4.SetBeatLoop</key>
                 <description>loopEncoder</description>
                 <status>0xB7</status>
                 <midino>0x08</midino>
                 <options>
-                    <Normal />
+                    <Script-binding />
                 </options>
             </control>
+            <control>
+                <group>[Channel1]</group>
+                <key>ReloopMixon4.SetBeatJump</key>
+                <description>SHIFT+LoopEncoder</description>
+                <status>0xB4</status>
+                <midino>0x48</midino>
+                <options>
+                    <Script-binding />
+                </options>
+            </control>
+            <control>
+                <group>[Channel2]</group>
+                <key>ReloopMixon4.SetBeatJump</key>
+                <description>SHIFT+LoopEncoder</description>
+                <status>0xB5</status>
+                <midino>0x48</midino>
+                <options>
+                    <Script-binding />
+                </options>
+            </control>
+            <control>
+                <group>[Channel3]</group>
+                <key>ReloopMixon4.SetBeatJump</key>
+                <description>SHIFT+ LoopEncoder</description>
+                <status>0xB6</status>
+                <midino>0x48</midino>
+                <options>
+                    <Script-binding />
+                </options>
+            </control>
+            <control>
+                <group>[Channel4]</group>
+                <key>ReloopMixon4.SetBeatJump</key>
+                <description>SHIFT+ LoopEncoder</description>
+                <status>0xB7</status>
+                <midino>0x48</midino>
+                <options>
+                    <Script-binding />
+                </options>
+            </control>
+            
             <control>
                 <group>[Channel1]</group>
                 <key>beatloop_activate</key>

@@ -37,6 +37,7 @@
 ////////////////////////////////////////////////////////////////////////
 /* global print                                                       */
 ////////////////////////////////////////////////////////////////////////
+
 const JogFlashWarningTime = 30;
 const JogFlashCriticalTime = 15;
 
@@ -495,6 +496,9 @@ ReloopMixon4.ChannelPlay = function (value, group, control) {
 };
 
 ReloopMixon4.JogLed = function (value, group, control) {
+    if (engine.getValue(group, "track_loaded") === 0) {
+        return;
+    }
   const trackDuration = engine.getValue(group, "duration");
   const timeLeft = trackDuration * (1.0 - value);
   const channelChan = parseInt(channelRegEx.exec(group)[1]);
@@ -570,3 +574,32 @@ ReloopMixon4.jogLedFlash = function (group, state) {
     JogBlinking[group] = false;
   }
 };
+
+ReloopMixon4.SetBeatLoop = function (channel, control, value, status, group) {
+  const deck = parseInt(group.substr(8, 1), 10);
+  const oldValue = engine.getValue(group, 'beatloop_size');
+  const ranges = [1/32,1/16,1/8,1/4,1/2,1,2,4,8,16,32];
+  let oldIndex = ranges.indexOf(oldValue);
+  let newIndex = oldIndex;
+  if (value == 0x3F){
+    newIndex = Math.max(0,Math.min(ranges.length-1, oldIndex - 1));
+  } else {
+    newIndex = Math.max(0,Math.min(ranges.length-1, oldIndex + 1));
+  }
+  engine.setValue(group, 'beatloop_size', ranges[newIndex]);
+}
+
+ReloopMixon4.SetBeatJump = function (channel, control, value, status, group){
+  const deck = parseInt(group.substr(8, 1), 10);
+  const oldValue = engine.getValue(group, 'beatjump_size');
+  const ranges = [1/32,1/16,1/8,1/4,1/2,1,2,4,8,16,32];
+  let oldIndex = ranges.indexOf(oldValue);
+  let newIndex = oldIndex;
+  if (value == 0x3F){
+    newIndex = Math.max(0,Math.min(ranges.length-1, oldIndex - 1));
+  } else {
+    newIndex = Math.max(0,Math.min(ranges.length-1, oldIndex + 1));
+  }
+  engine.setValue(group, 'beatjump_size', ranges[newIndex]);
+
+}
