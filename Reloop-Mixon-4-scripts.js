@@ -67,9 +67,9 @@ let FxMode = 1;
 const JogRPM = 33.0 + 1 / 3;
 const RoundTripTime = 60.0 / JogRPM;
 const JogLedNumber = 16;
-const JogBaseLed = 0x01;
-const JogLedWarningInterval = 400;
-const JogLegCriticalInterval = 200;
+const JogBaseLed = 0x11;
+const JogFlashWarningInterval = 400;
+const JogFlashCriticalInterval = 200;
 
 const JogLedLit = [];
 const channelPlaying = [];
@@ -77,6 +77,8 @@ const JogBlinking = [];
 
 const ON = 0x7f;
 const OFF = 0x00;
+const ALLJOGON = 0x10;
+const ALLJOGOFF= 0x00;
 const RED = 0x30;
 const VIOLET = 0x33;
 const BLUE = 0x03;
@@ -120,7 +122,7 @@ ReloopMixon4.TurnLEDsOff = function () {
     }
   }
   // PITCH
-  for (i = 0xe4; i <= 0xe7; i++) {
+  for (i = 0xE4; i <= 0xE7; i++) {
     midi.sendShortMsg(i, 0xd1, OFF);
   }
   //  MISC
@@ -137,7 +139,9 @@ ReloopMixon4.TurnLEDsOff = function () {
     midi.sendShortMsg(i, 0x11 + SHIFT, OFF); // KEY SYNC
     midi.sendShortMsg(i, 0x24, OFF); // KEY SYNC dbl press
   }
-
+  for(i = 0xB4; i <=0xB7; i++){
+    midi.sendShortMsg(i,0x06,0x00);
+  }
   // Maybe more lets see
 };
 
@@ -410,14 +414,10 @@ ReloopMixon4.AllJogLEDsToggle = function (deck, state, step) {
   if(deck == 0xB6 || deck == 0xB7){
     _shift = 0x40;
   }
-  let states = [];
-  for(let i = 0x00; i<=0x10;i++){
-    states.push(i);
-  }
   if(state == OFF){
-    midi.sendShortMsg(deck, 0x06 + _shift, state);
+    midi.sendShortMsg(deck, 0x06, 0x00);
   } else {
-    midi.sendShortMsg(deck, 0x06 + _shift, states[step]);
+    midi.sendShortMsg(deck, 0x06, 0x10);
   }
 };
 
@@ -428,12 +428,10 @@ ReloopMixon4.deckLoaded = function (value, group, control) {
       const channelChan = parseInt(channelRegEx.exec(group)[1]);
       if (channelChan <= 4) {
         // shut down load button
-        midi.sendShortMsg(0x93 + channelChan, 0x50, value ? ON : OFF);
+        midi.sendShortMsg(0x93 + channelChan, 0x50, value ? ALLJOGON : ALLJOGOFF);
         if (JogLedLit[group] !== undefined && !value) {
           midi.sendShortMsg(
-            0x93 + channelChan,
-            JogBaseLed - ((JogLedLit[group] + JogLedNumber - 1) % JogLedNumber),
-            OFF
+            0xB3 + channelChan,0x06, 0x00
           );
           delete JogLedLit[group];
         }
@@ -507,20 +505,18 @@ ReloopMixon4.JogLed = function (value, group, control) {
     if (!JogBlinking[group]) {
       if (JogLedLit[group] !== undefined) {
         midi.sendShortMsg(
-          0xB3 + channelChan,
-          JogBaseLed - ((JogLedLit[group] + JogLedNumber - 1) % JogLedNumber),
-          OFF
+          0xB3 + channelChan,0x06,0x00
         );
         delete JogLedLit[group];
       }
       // Light all Jog Leds
-      ReloopMixon4.AllJogLEDsToggle(0xB3 + channelChan, ON, 2);
+      ReloopMixon4.AllJogLEDsToggle(0xB3 + channelChan, ALLJOGON, 2);
       jogWheelTimers[group] = engine.beginTimer(
         timeLeft <= JogFlashCriticalTime
-          ? JogFlashCriticalTime
-          : JogFlashWarningTime,
+          ? JogFlashCriticalInterval
+          : JogFlashWarningInterval,
         () => {
-          ReloopMixon4.jogLedFlash(group, ON);
+          ReloopMixon4.jogLedFlash(group, ALLJOGON);
         },
         true
       );
@@ -528,48 +524,38 @@ ReloopMixon4.JogLed = function (value, group, control) {
     }
     return;
   }
-  const timePosition = trackDuration * value;
+const timePosition = trackDuration * value;
   const rotationNumber = timePosition / RoundTripTime;
   const positionInCircle = rotationNumber - Math.floor(rotationNumber);
   const ledToLight = Math.round(positionInCircle * JogLedNumber);
   if (JogLedLit[group] == ledToLight) {
     return;
   }
-  if (JogLedLit[group] !== undefined) {
-    midi.sendShortMsg(
-      0xB3 + channelChan,
-      JogBaseLed - ((ledToLight + JogLedNumber - 1) % JogLedNumber),
-      OFF
-    );
-  }
   midi.sendShortMsg(
-    0xB3 + channelChan,
-    JogBaseLed - ((ledToLight + JogLedNumber - 1) % this.JogLedNumber),
-    ON
+    0xB3 + channelChan,0x06,
+    JogBaseLed + ledToLight
   );
+  //console.log('JOG LED VALUE', JogBaseLed + ((ledToLight + JogLedNumber - 1) % this.JogLedNumber), 'ledTolight', ledToLight);
   JogLedLit[group] = ledToLight;
 };
 
 ReloopMixon4.jogLedFlash = function (group, state) {
   const chan = parseInt(group.substr(1, 8), 10);
-  ReloopMixon4.AllJogLEDsToggle(0xB3 + chan, state ? OFF : ON, 2);
-  const timeLeft =
-    engine.getValue(group, "duration") *
-    (1.0 - engine.getValue(group, "playposition"));
+  ReloopMixon4.AllJogLEDsToggle(0xB3 + chan, state ? ALLJOGOFF : ALLJOGON, 2);
+  const timeLeft = engine.getValue(group, "duration") * (1.0 - engine.getValue(group, "playposition"));
   if (timeLeft < JogFlashWarningTime) {
-    const nextTime =
-      timeLeft < JogFlashCriticalTime
-        ? JogFlashCriticalTime
-        : JogFlashWarningTime;
+    const nextTime = timeLeft < JogFlashCriticalTime
+        ? JogFlashCriticalInterval
+        : JogFlashWarningInterval;
     jogWheelTimers[group] = engine.beginTimer(
       nextTime,
       () => {
-        ReloopMixon4.jogLedFlash(group, state ? OFF : ON);
+        ReloopMixon4.jogLedFlash(group, state ? ALLJOGOFF : ALLJOGON);
       },
       true
     );
   } else {
-    ReloopMixon4.AllJogLEDsToggle(0xB3 + chan, OFF);
+    ReloopMixon4.AllJogLEDsToggle(0xB3 + chan, ALLJOGOFF);
     delete jogWheelTimers[group];
     JogBlinking[group] = false;
   }
