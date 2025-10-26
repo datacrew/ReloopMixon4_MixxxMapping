@@ -535,7 +535,6 @@ const timePosition = trackDuration * value;
     0xB3 + channelChan,0x06,
     JogBaseLed + ledToLight
   );
-  //console.log('JOG LED VALUE', JogBaseLed + ((ledToLight + JogLedNumber - 1) % this.JogLedNumber), 'ledTolight', ledToLight);
   JogLedLit[group] = ledToLight;
 };
 
