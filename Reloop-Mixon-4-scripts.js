@@ -101,11 +101,11 @@ ReloopMixon4.TurnLEDsOff = function () {
       midi.sendShortMsg(i, j + SHIFT, OFF);
     }
     // LOOP PARAMETER PLAY CUE SYNC
-    for (j = 0x08; j < 0x0e; j++) {
-      midi.sendShortMsg(i + 0x04, j, OFF);
-      if (j >= 0x0a) {
-        midi.sendShortMsg(i + 0x04, j + SHIFT, OFF);
-      }
+    for (j = 0x08; j <= 0x0E; j++) {
+     midi.sendShortMsg(i + 0x04, j, OFF);
+     if (j >= 0x0a) {
+       midi.sendShortMsg(i + 0x04, j + SHIFT, OFF);
+     }
     }
     // MIXER TRAX
     for (j = 0x01; j <= 0x03; j++) {
@@ -123,22 +123,26 @@ ReloopMixon4.TurnLEDsOff = function () {
   }
   // PITCH
   for (i = 0xE4; i <= 0xE7; i++) {
-    midi.sendShortMsg(i, 0xd1, OFF);
+    midi.sendShortMsg(i, 0xD1, OFF);
   }
-  //  MISC
-  for (i = 0x94; i <= 0x97; i++) {
-    // PITCH LED
-    midi.sendShortMsg(i, 0x15, OFF); // PITCH LED
-    midi.sendShortMsg(i, 0x0f, OFF); // SLIP
-    midi.sendShortMsg(i, 0x0f + SHIFT, OFF); // SLIP
-    midi.sendShortMsg(i, 0x10, OFF); // KEY LOCK
-    midi.sendShortMsg(i, 0x10 + SHIFT, OFF); // KEY LOCK
-    midi.sendShortMsg(i, 0x25, OFF); // KEY LOCK (hold)
-    midi.sendShortMsg(i, 0x25 + SHIFT, OFF); // KEY LOCK (hold)
-    midi.sendShortMsg(i, 0x11, OFF); // KEY SYNC
-    midi.sendShortMsg(i, 0x11 + SHIFT, OFF); // KEY SYNC
-    midi.sendShortMsg(i, 0x24, OFF); // KEY SYNC dbl press
-  }
+  
+  // MISC
+  // One of these killed JogTouch on 0x94-0x97, 0x07, 0x00 0x7F 
+  // Maybe a hidden feature for some reasons 
+  // Keep it in the comments, maybe we find out if it maybe neccessary 
+  // for (i = 0x94; i <= 0x97; i++) {
+  //   midi.sendShortMsg(i, 0x15, OFF); // PITCH LED
+  //   midi.sendShortMsg(i, 0x0f, OFF); // SLIP
+  //   midi.sendShortMsg(i, 0x0f + SHIFT, OFF); // SLIP
+  //   midi.sendShortMsg(i, 0x10, OFF); // KEY LOCK
+  //   midi.sendShortMsg(i, 0x10 + SHIFT, OFF); // KEY LOCK
+  //   midi.sendShortMsg(i, 0x25, OFF); // KEY LOCK (hold)
+  //   midi.sendShortMsg(i, 0x25 + SHIFT, OFF); // KEY LOCK (hold)
+  //   midi.sendShortMsg(i, 0x11, OFF); // KEY SYNC
+  //   midi.sendShortMsg(i, 0x11 + SHIFT, OFF); // KEY SYNC
+  //   midi.sendShortMsg(i, 0x24, OFF); // KEY SYNC dbl press
+  // }
+
   for(i = 0xB4; i <=0xB7; i++){
     midi.sendShortMsg(i,0x06,0x00);
   }
@@ -385,6 +389,7 @@ ReloopMixon4.SamplerVol = function (channel, control, value, status, group) {
 // Jog Wheels
 ReloopMixon4.WheelTouch = function (channel, control, value, status, group) {
   const deck = parseInt(group.substr(8, 1), 10);
+  console.log('Wheel Touch ', value);
   if (value === DOWN) {
     const alpha = 1.0 / 8;
     const beta = alpha / 32;
@@ -535,6 +540,7 @@ const timePosition = trackDuration * value;
     0xB3 + channelChan,0x06,
     JogBaseLed + ledToLight
   );
+  //console.log('JOG LED VALUE', JogBaseLed + ((ledToLight + JogLedNumber - 1) % this.JogLedNumber), 'ledTolight', ledToLight);
   JogLedLit[group] = ledToLight;
 };
 
@@ -586,5 +592,4 @@ ReloopMixon4.SetBeatJump = function (channel, control, value, status, group){
     newIndex = Math.max(0,Math.min(ranges.length-1, oldIndex + 1));
   }
   engine.setValue(group, 'beatjump_size', ranges[newIndex]);
-
 }
